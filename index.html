@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los Juegos Hambrientos - Simulador con IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased">
+
+<header class="app-header sticky top-0 z-50">
+    <div class="container-main mx-auto px-4 py-2.5 flex flex-col sm:flex-row justify-between items-center">
+        <h1 class="app-title mb-2 sm:mb-0 flex items-center">
+            <i class="fas fa-dragon mr-2"></i> Los Juegos Hambrientos
+        </h1>
+        <nav id="navigation" class="flex flex-wrap justify-center gap-1">
+            <a href="#inicio" class="nav-link active"><i class="fas fa-home"></i> Inicio</a>
+            <a href="#cosecha" class="nav-link"><i class="fas fa-users"></i> Cosecha</a>
+            <a href="#configuracion" class="nav-link"><i class="fas fa-sliders-h"></i> Ajustes</a>
+            <a href="#tributos" class="nav-link"><i class="fas fa-id-badge"></i> Tributos</a>
+            <a href="#simulacion" class="nav-link"><i class="fas fa-play"></i> Simulación</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container-main mx-auto px-4 sm:px-5 py-6">
+    <!-- SECCIÓN DE INICIO -->
+    <section id="inicio-section" class="content-section active">
+        <h2 class="section-header"><i class="fas fa-door-open"></i>Bienvenido al Simulador de Los Juegos del Hambre</h2>
+        <p class="mb-5 text-sm text-gray-700 leading-relaxed">Una nueva era ha comenzado. Define a tus tributos y deja que una IA avanzada actúe como Vigilante, creando una narrativa única y dinámica para tus juegos.</p>
+        <ul class="list-none mb-6 space-y-2.5 text-sm text-gray-600">
+            <li class="flex items-start"><i class="fas fa-user-plus mr-2 mt-0.5 text-green-500 text-md"></i><div><strong>Crea Tributos:</strong> Nombres, distritos, imágenes y estadísticas aleatorias.</div></li>
+            <li class="flex items-start"><i class="fas fa-robot mr-2 mt-0.5 text-blue-500 text-md"></i><div><strong>Narrativa por IA:</strong> La historia es generada por una IA que considera las estadísticas y el estado de los tributos para crear eventos coherentes y emocionantes.</div></li>
+            <li class="flex items-start"><i class="fas fa-bolt mr-2 mt-0.5 text-purple-500 text-md"></i><div><strong>Simulación de 7 Días:</strong> Sigue la crónica completa de los juegos, desde el Baño de Sangre hasta el vencedor final, a lo largo de una semana.</div></li>
+        </ul>
+        <p class="mb-6 text-sm text-gray-700">Comienza en "<strong class="font-medium text-primary-accent">La Cosecha</strong>". ¡Que la suerte esté siempre de tu lado!</p>
+        <button id="goToHarvestBtn" class="btn btn-primary"><i class="fas fa-arrow-right mr-1.5"></i> Ir a la Cosecha</button>
+    </section>
+
+    <!-- SECCIÓN DE COSECHA -->
+    <section id="cosecha-section" class="content-section">
+        <h2 class="section-header"><i class="fas fa-user-friends"></i>La Cosecha: Define a tus Tributos</h2>
+        <div class="mb-5 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label for="numTributesInput" class="form-label text-sm font-medium text-gray-700 mb-1">Número total de tributos (par, mín 2):</label>
+            <div class="flex items-center space-x-2">
+                <input type="number" id="numTributesInput" value="24" min="2" step="2" class="form-input w-24 text-center p-2">
+                <button id="updateTributesBtn" class="btn btn-secondary text-xs py-1.5 px-3"><i class="fas fa-sync-alt mr-1"></i> Actualizar</button>
+            </div>
+            <p class="mt-1.5 text-xxs text-gray-500">Por defecto: 24 tributos (12 distritos).</p>
+        </div>
+        <form id="tributesForm">
+            <div id="tributeInputsContainer" class="space-y-4"></div>
+            <button type="button" id="saveTributesBtn" class="btn btn-primary mt-8"><i class="fas fa-cog mr-1.5"></i> Guardar y Configurar</button>
+        </form>
+    </section>
+
+    <!-- SECCIÓN DE CONFIGURACIÓN -->
+    <section id="configuracion-section" class="content-section">
+        <h2 class="section-header"><i class="fas fa-tools"></i>Ajustes de la Simulación IA</h2>
+        <div class="space-y-5 bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <div>
+                <label for="openRouterApiKey" class="form-label text-sm">Tu API Key de OpenRouter:</label>
+                <input type="password" id="openRouterApiKey" class="form-input api-key-input" placeholder="Pega tu clave sk-or-v1-...">
+                <p class="mt-1 text-xxs text-gray-500">Tu clave se usa localmente y no se guarda en ningún sitio. Es necesaria para que la IA funcione.</p>
+            </div>
+            <p class="text-xs text-gray-500 italic border-t pt-4 mt-4 border-gray-200">
+                <i class="fas fa-info-circle mr-1 text-blue-500"></i> Se usa un modelo gratuito, el cual no te cobrará nada. La IA generará un reporte narrativo para cada uno de los 7 días de los juegos. La "velocidad" ahora depende de la respuesta de la IA.
+            </p>
+             <button id="saveSettingsBtn" class="btn btn-primary mt-5"><i class="fas fa-users mr-1.5"></i> Ver Resumen de Tributos</button>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE RESUMEN DE TRIBUTOS -->
+    <section id="tributos-section" class="content-section">
+        <h2 class="section-header"><i class="fas fa-id-card-alt"></i>Resumen de Tributos</h2>
+        <p class="mb-5 text-sm text-gray-600">Verifica los perfiles y estadísticas de los tributos. La IA los usará para construir la historia.</p>
+        <div id="tributesOverviewContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        <div class="mt-8 flex flex-col sm:flex-row justify-end items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <button id="editHarvestBtn" class="btn btn-secondary w-full sm:w-auto"><i class="fas fa-edit mr-1.5"></i> Editar Cosecha</button>
+            <button id="startGameBtn" class="btn btn-primary w-full sm:w-auto"><i class="fas fa-play-circle mr-1.5"></i> ¡Comenzar Juegos!</button>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE SIMULACIÓN -->
+    <section id="simulacion-section" class="content-section">
+        <div class="flex flex-col lg:flex-row gap-5">
+            <div class="lg:w-2/3 order-2 lg:order-1">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 pb-2.5 border-b border-gray-200">
+                    <h2 class="section-header !text-lg sm:!text-xl !mb-0 !pb-0 !border-none">
+                        <i class="fas fa-scroll"></i>Diario de la Arena - Día <span id="currentDayDisplay" class="ml-1">0</span>
+                    </h2>
+                     <div id="aiStatus" class="text-sm text-gray-500 font-medium flex items-center"></div>
+                </div>
+                <p id="winnerMessage" class="text-xl md:text-2xl font-semibold text-center mb-4 winner-display"></p>
+                <div id="simulationLogOutput"></div>
+            </div>
+            <div class="lg:w-1/3 order-1 lg:order-2 simulation-sidebar p-4">
+                <!-- AQUÍ ESTÁ EL CAMBIO -->
+                <h3 class="sidebar-title text-base font-semibold mb-3 flex items-center"><i class="fas fa-users mr-1.5 opacity-70"></i>Jugadores en la arena</h3>
+                <div id="simulationTributesStatus" class="space-y-0.5 max-h-[450px] overflow-y-auto pr-0.5"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="text-center p-6 mt-10 border-t border-gray-200">
+    <p class="text-gray-500 text-xs">© 2025 Los Juegos Hambrientos. Simulador creado por fans.</p>
+    <p class="text-gray-400 text-xxs mt-1">"Los Juegos del Hambre" © Suzanne Collins y Scholastic. Sin afiliación oficial.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
