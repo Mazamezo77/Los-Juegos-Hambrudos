@@ -1,4 +1,3 @@
-// --- CONSTANTES Y ENUMERACIONES GLOBALES ---
 const TRIBUTE_CONDITIONS = {
     HEALTHY: 'Saludable',
     INJURED_MILD: 'Herido Leve',
@@ -9,16 +8,15 @@ const TRIBUTE_CONDITIONS = {
 const TRIBUTE_MINDSETS = {
     AGGRESSIVE: 'Agresivo',
     DEFENSIVE: 'Defensivo',
-    SCAVENGER: 'Carroñero'
+    NEUTRAL: 'Neutral'
 };
 
 const DEFAULT_NAMES = {
-    MALE: ["Peeta M.", "Cato H.", "Marvel S.", "Finnick O.", "Gale H.", "Thresh R.", "Haymitch A.", "Brutus G.", "Gloss C.", "Cinna L.", "Beetee L.", "Boggs T."],
-    FEMALE: ["Katniss E.", "Glimmer B.", "Rue S.", "Annie C.", "Primrose E.", "Johanna M.", "Foxface F.", "Clove K.", "Cashmere V.", "Wiress P.", "Mags F.", "Alma C."]
+    MALE: ["Peeta", "Cato", "Marvel", "Finnick", "Gale", "Thresh", "Haymitch", "Brutus", "Gloss", "Cinna", "Beetee", "Boggs"],
+    FEMALE: ["Katniss", "Glimmer", "Rue", "Annie", "Primrose", "Johanna M.", "Foxface", "Clove", "Cashmere", "Wiress", "Mags", "Alma"]
 };
 const DEFAULT_IMAGE_BASE = 'https://source.unsplash.com/random/120x120/?portrait,person,face&sig=';
 
-// --- CLASE TRIBUTE: Representa a un participante ---
 class Tribute {
     constructor(id, name, district, image) {
         this.id = id;
@@ -27,10 +25,10 @@ class Tribute {
         this.image = image;
 
         this.stats = {
-            strength: Math.floor(Math.random() * 5) + 3, // 3-7
-            stealth: Math.floor(Math.random() * 5) + 3,  // 3-7
-            intelligence: Math.floor(Math.random() * 5) + 3, // 3-7
-            speed: Math.floor(Math.random() * 5) + 3,    // 3-7
+            strength: Math.floor(Math.random() * 5) + 3,
+            stealth: Math.floor(Math.random() * 5) + 3,
+            intelligence: Math.floor(Math.random() * 5) + 3,
+            speed: Math.floor(Math.random() * 5) + 3,
             resistance: Math.floor(Math.random() * 5) + 3 // 3-7
         };
         this.condition = TRIBUTE_CONDITIONS.HEALTHY;
@@ -38,12 +36,14 @@ class Tribute {
     }
 
     calculateMindset() {
-        const { strength, intelligence, stealth, resistance } = this.stats;
-        if (strength > 7 && intelligence < 5) return TRIBUTE_MINDSETS.AGGRESSIVE;
-        if (resistance > 7 && stealth > 6) return TRIBUTE_MINDSETS.DEFENSIVE;
-        if (intelligence > 7) return TRIBUTE_MINDSETS.SCAVENGER;
-        if (strength > 6) return TRIBUTE_MINDSETS.AGGRESSIVE;
-        return TRIBUTE_MINDSETS.SCAVENGER;
+        const rand = Math.random();
+        if (rand < 0.333) {
+            return TRIBUTE_MINDSETS.AGGRESSIVE;
+        } else if (rand < 0.666) {
+            return TRIBUTE_MINDSETS.DEFENSIVE;
+        } else {
+            return TRIBUTE_MINDSETS.NEUTRAL;
+        }
     }
 
     isAlive() {
@@ -59,26 +59,25 @@ class Tribute {
     }
 }
 
-// --- OBJETO SIMULADOR PRINCIPAL ---
 const GameSimulator = {
-    // --- ESTADO Y CONFIGURACIÓN ---
     state: {
         tributes: [],
         gameDay: 0,
         isRunning: false,
         storyHistory: "",
+        arenaBiome: "Jungla densa y húmeda", 
     },
     config: {
         openRouterApiKey: "",
     },
     dom: {},
 
-    // --- INICIALIZACIÓN ---
     init() {
         this.cacheDomElements();
         this.bindEventListeners();
         this.ui.showSection('inicio-section');
         this.ui.generateTributeInputs();
+        this.logic.populateCastDropdown();
     },
 
     cacheDomElements() {
@@ -93,6 +92,11 @@ const GameSimulator = {
         this.dom.winnerMessage = document.getElementById('winnerMessage');
         this.dom.openRouterApiKeyInput = document.getElementById('openRouterApiKey');
         this.dom.aiStatus = document.getElementById('aiStatus');
+        this.dom.arenaBiomeInput = document.getElementById('arenaBiomeInput');
+        this.dom.castNameInput = document.getElementById('castNameInput');
+        this.dom.saveCastBtn = document.getElementById('saveCastBtn');
+        this.dom.loadCastSelect = document.getElementById('loadCastSelect');
+        this.dom.loadCastBtn = document.getElementById('loadCastBtn');
     },
 
     bindEventListeners() {
@@ -109,9 +113,11 @@ const GameSimulator = {
         document.getElementById('saveSettingsBtn').addEventListener('click', () => this.logic.saveSettings());
         document.getElementById('editHarvestBtn').addEventListener('click', () => this.ui.showSection('cosecha-section'));
         document.getElementById('startGameBtn').addEventListener('click', () => this.logic.prepareAndStartSimulation());
+        
+        this.dom.saveCastBtn.addEventListener('click', () => this.logic.saveCast());
+        this.dom.loadCastBtn.addEventListener('click', () => this.logic.loadCast());
     },
 
-    // --- MÉTODOS DE LA INTERFAZ DE USUARIO (UI) ---
     ui: {
         showSection(sectionId) {
             GameSimulator.dom.sections.forEach(section => section.classList.remove('active'));
@@ -128,16 +134,17 @@ const GameSimulator = {
             if (navLink) navLink.classList.add('active');
         },
 
-        // --- CAMBIO INICIA: AÑADIR INPUTS DE ESTADÍSTICAS ---
-        generateTributeInputs() {
-            const numTributes = parseInt(GameSimulator.dom.numTributesInput.value);
+        generateTributeInputs(tributesData = null) {
+            const container = GameSimulator.dom.tributeInputsContainer;
+            container.innerHTML = '';
+            
+            const numTributes = tributesData ? tributesData.length : parseInt(GameSimulator.dom.numTributesInput.value);
             if (isNaN(numTributes) || numTributes < 2 || numTributes % 2 !== 0) {
                 alert("El número de tributos debe ser un número par y al menos 2. Se usará 24.");
                 GameSimulator.dom.numTributesInput.value = 24;
                 return this.generateTributeInputs();
             }
-            const container = GameSimulator.dom.tributeInputsContainer;
-            container.innerHTML = '';
+
             const numDistricts = numTributes / 2;
             for (let i = 1; i <= numDistricts; i++) {
                 const districtGroup = document.createElement('div');
@@ -145,13 +152,14 @@ const GameSimulator = {
                 districtGroup.innerHTML = `<h3 class="district-title"><i class="fas fa-map-signs mr-1.5 opacity-60"></i>Distrito ${i}</h3>`;
                 for (let j = 0; j < 2; j++) {
                     const tributeIndex = (i - 1) * 2 + j;
+                    const existingTribute = tributesData ? tributesData[tributeIndex] : null;
+                    
                     const gender = j === 0 ? "Masculino" : "Femenino";
                     const nameArray = j === 0 ? DEFAULT_NAMES.MALE : DEFAULT_NAMES.FEMALE;
                     const defaultName = nameArray[(i - 1) % nameArray.length] || `Tributo ${tributeIndex + 1}`;
                     const placeholderImage = `${DEFAULT_IMAGE_BASE}${tributeIndex + Date.now()}`;
                     
-                    // Se crea un tributo temporal solo para obtener las estadísticas aleatorias iniciales
-                    const tempTribute = new Tribute(0, '', 0, '');
+                    const tempTribute = existingTribute || new Tribute(0, '', 0, '');
 
                     districtGroup.innerHTML += `
                         <fieldset class="tribute-fieldset">
@@ -159,7 +167,7 @@ const GameSimulator = {
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-3">
                                 <div>
                                     <label for="tributeName${tributeIndex}" class="form-label">Nombre:</label>
-                                    <input type="text" id="tributeName${tributeIndex}" value="${defaultName}" class="form-input" required>
+                                    <input type="text" id="tributeName${tributeIndex}" value="${existingTribute ? existingTribute.name : defaultName}" class="form-input" required>
                                 </div>
                                 <div>
                                     <label for="tributeDistrict${tributeIndex}" class="form-label">Distrito:</label>
@@ -167,7 +175,7 @@ const GameSimulator = {
                                 </div>
                                 <div>
                                     <label for="tributeImage${tributeIndex}" class="form-label">URL Imagen (opcional):</label>
-                                    <input type="url" id="tributeImage${tributeIndex}" placeholder="${placeholderImage}" class="form-input">
+                                    <input type="url" id="tributeImage${tributeIndex}" value="${(existingTribute && existingTribute.image.startsWith('http')) ? existingTribute.image : ''}" placeholder="${placeholderImage}" class="form-input">
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-200">
@@ -200,7 +208,6 @@ const GameSimulator = {
                 container.appendChild(districtGroup);
             }
         },
-        // --- CAMBIO TERMINA ---
 
         renderTributesOverview() {
             const container = GameSimulator.dom.tributesOverviewContainer;
@@ -213,7 +220,7 @@ const GameSimulator = {
                 const mindsetIcon = {
                     [TRIBUTE_MINDSETS.AGGRESSIVE]: 'fa-fist-raised text-red-500',
                     [TRIBUTE_MINDSETS.DEFENSIVE]: 'fa-shield-alt text-blue-500',
-                    [TRIBUTE_MINDSETS.SCAVENGER]: 'fa-seedling text-green-500'
+                    [TRIBUTE_MINDSETS.NEUTRAL]: 'fa-leaf text-green-500' 
                 }[tribute.mindset];
                 const card = document.createElement('div');
                 card.className = 'data-card tribute-card status-alive';
@@ -236,22 +243,18 @@ const GameSimulator = {
             });
         },
         
-        // --- CAMBIO INICIA: MODIFICAR SIDEBAR PARA NO MOSTRAR ESTADO ---
         updateStatusSidebar() {
             const container = GameSimulator.dom.simulationTributesStatus;
             container.innerHTML = '';
             
-            // Se ordena solo por distrito para tener una lista consistente.
             const sortedTributes = [...GameSimulator.state.tributes].sort((a, b) => a.district - b.district);
 
             sortedTributes.forEach(tribute => {
-                // Se elimina la lógica de clases de estado (caído/vivo) y el punto de color.
                 const statusDiv = document.createElement('div');
-                statusDiv.className = `simulation-status-item`; // Clase simple sin estado
+                statusDiv.className = `simulation-status-item`;
                 
-                // Se mantiene la opacidad si el tributo ha caído, como una pista visual sutil.
                 if (!tribute.isAlive()) {
-                    statusDiv.style.opacity = '0.5';
+                    statusDiv.classList.add('status-fallen');
                 }
 
                 statusDiv.innerHTML = `
@@ -259,12 +262,11 @@ const GameSimulator = {
                         <img src="${tribute.image}" alt="${tribute.name}" class="simulation-status-item-img" onerror="this.onerror=null;this.src='${DEFAULT_IMAGE_BASE}error_status';">
                         <span class="font-medium text-xs truncate" title="${tribute.name} (D${tribute.district})">${tribute.name} <span class="text-gray-500 font-normal text-xxs">(D${tribute.district})</span></span>
                     </div>
-                    <!-- El punto de estado ha sido eliminado -->
+                     <span class="status-indicator-dot ${tribute.isAlive() ? 'alive' : 'fallen'}"></span>
                 `;
                 container.appendChild(statusDiv);
             });
         },
-        // --- CAMBIO TERMINA ---
 
         logDayMarker(day) {
             const logEntry = document.createElement('p');
@@ -297,13 +299,11 @@ const GameSimulator = {
         }
     },
 
-    // --- MÉTODOS DE LÓGICA DEL JUEGO (AHORA CON IA) ---
     logic: {
         isValidUrl(string) {
             try { new URL(string); return true; } catch (_) { return false; }
         },
 
-        // --- CAMBIO INICIA: GUARDAR LAS ESTADÍSTICAS EDITADAS ---
         saveTributes() {
             GameSimulator.state.tributes = [];
             const numTotalTributes = parseInt(GameSimulator.dom.numTributesInput.value);
@@ -321,23 +321,19 @@ const GameSimulator = {
                 }
                 const tribute = new Tribute(`t_${Date.now()}_${i}`, name, district, image);
 
-                // Sobrescribir las estadísticas aleatorias con los valores del formulario
-                tribute.stats.strength = parseInt(document.getElementById(`tributeStrength${i}`).value, 10) || 5;
-                tribute.stats.speed = parseInt(document.getElementById(`tributeSpeed${i}`).value, 10) || 5;
-                tribute.stats.resistance = parseInt(document.getElementById(`tributeResistance${i}`).value, 10) || 5;
-                tribute.stats.stealth = parseInt(document.getElementById(`tributeStealth${i}`).value, 10) || 5;
-                tribute.stats.intelligence = parseInt(document.getElementById(`tributeIntelligence${i}`).value, 10) || 5;
+                tribute.stats.strength = Math.min(parseInt(document.getElementById(`tributeStrength${i}`).value, 10) || 5, 10);
+                tribute.stats.speed = Math.min(parseInt(document.getElementById(`tributeSpeed${i}`).value, 10) || 5, 10);
+                tribute.stats.resistance = Math.min(parseInt(document.getElementById(`tributeResistance${i}`).value, 10) || 5, 10);
+                tribute.stats.stealth = Math.min(parseInt(document.getElementById(`tributeStealth${i}`).value, 10) || 5, 10);
+                tribute.stats.intelligence = Math.min(parseInt(document.getElementById(`tributeIntelligence${i}`).value, 10) || 5, 10);
 
-                // Recalcular la mentalidad basada en las nuevas estadísticas
                 tribute.mindset = tribute.calculateMindset();
-
                 GameSimulator.state.tributes.push(tribute);
             }
             GameSimulator.ui.renderTributesOverview();
             alert("Tributos guardados. Procede a configurar la simulación.");
             GameSimulator.ui.showSection('configuracion-section');
         },
-        // --- CAMBIO TERMINA ---
         
         saveSettings() {
             const apiKey = GameSimulator.dom.openRouterApiKeyInput.value.trim();
@@ -365,6 +361,8 @@ const GameSimulator = {
             dom.simulationLogOutput.innerHTML = '';
             dom.winnerMessage.innerHTML = '';
             state.isRunning = true;
+            
+            state.arenaBiome = dom.arenaBiomeInput.value.trim() || "Una arena genérica sin características notables";
             
             state.tributes.forEach(t => t.reset());
             ui.updateStatusSidebar();
@@ -419,36 +417,54 @@ const GameSimulator = {
 
             let dayInstruction = "";
             if (state.gameDay === 1) {
-                dayInstruction = "Describe el 'Baño de Sangre' inicial en la Cornucopia. Es un caos violento. Basándote en la mentalidad y estadísticas, narra quién lucha, quién huye y quién consigue recursos. Los 'Agresivos' se lanzarán a la lucha. Los 'Carroñeros' buscarán suministros valiosos en los bordes. Los 'Defensivos' evitarán la confrontación a toda costa. Decide quién muere en este enfrentamiento inicial.";
+                dayInstruction = "Describe el 'Baño de Sangre' inicial en la Cornucopia. Es un caos violento. Basándote en la mentalidad y estadísticas, narra quién lucha, quién huye y quién consigue recursos. Los 'Agresivos' se lanzarán a la lucha. Los 'Neutrales' buscarán suministros valiosos en los bordes. Los 'Defensivos' evitarán la confrontación a toda costa. Decide quién muere en este enfrentamiento inicial.";
             } else if (state.gameDay < 7 && state.tributes.filter(t=>t.isAlive()).length > 2) {
                 dayInstruction = `Narra los eventos clave del Día ${state.gameDay}. Desarrolla la historia con lógica. Puede haber alianzas, traiciones, caza, supervivencia, heridas, muertes por el entorno o por otros tributos. Usa las estadísticas y el estado actual de los tributos para que sus acciones sean creíbles.`;
             } else {
                 dayInstruction = "Este es el final. Narra la conclusión dramática de los juegos. Describe el enfrentamiento final entre los supervivientes restantes. La tensión es máxima. Al final de tu texto, Y SOLO si hay un único superviviente, declara al ganador usando la frase exacta: 'VENCEDOR FINAL: [Nombre del ganador]'. Si todos mueren, simplemente narra el trágico final sin declarar vencedor.";
             }
+            
+            let arenaEvent = "No hay eventos especiales hoy. El peligro son los propios tributos y el entorno.";
+            const livingTributesCount = state.tributes.filter(t => t.isAlive()).length;
+            if (state.gameDay >= 3 && livingTributesCount > 4) {
+                const events = [
+                    "Un incendio forestal se extiende rápidamente, forzando a los tributos a abandonar sus refugios hacia una zona común.",
+                    "Una densa niebla tóquica con un agente alucinógeno se libera en las zonas bajas, empujando a los supervivientes a las tierras altas.",
+                    "Una plaga de rastrevíspulas (avispas mutantes venenosas) es liberada cerca de una fuente de agua clave, haciéndola inaccesible y peligrosa.",
+                    "Un grupo de 'mutos' (lobos genéticamente modificados con ojos de tributos caídos) es liberado para cazar a los supervivientes restantes por la noche."
+                ];
+                arenaEvent = events[Math.floor(Math.random() * events.length)];
+            }
 
             const systemPrompt = `Eres un Vigilante de los Juegos del Hambre. Tu tono es omnisciente, oscuro, y despiadado. Tu única función es narrar los eventos de la arena.
 REGLAS CRÍTICAS E INQUEBRANTABLES:
-1.  Tu respuesta debe ser ÚNICAMENTE la narrativa del día en español. NO incluyas saludos, preámbulos, resúmenes, comentarios, enumeraciones o subtitulos.
-2.  Menciona a los tributos por su nombre completo. Sus acciones deben ser coherentes con su mentalidad y estadísticas. Unicamente puede estar basado en los jugadores y distritos asignados por la persona, nadie más.
-3.  **MARCADOR DE MUERTE OBLIGATORIO:** Cuando un tributo muera, debes indicarlo de forma explícita e inequívoca añadiendo ' (CAÍDO)' justo después de su nombre la primera vez que mencionas su muerte. Ejemplo: 'Cato H. cae al suelo tras la estocada final (CAÍDO)'. ESTO ES ESENCIAL.
-4.  Mantén la continuidad con la historia de los días anteriores teniendo en cuenta muertes, heridas o eventos importantes.`;
+1.  Tu respuesta debe ser ÚNICAMENTE la narrativa del día en español. NO incluyas saludos, preámbulos, resúmenes, comentarios, enumeraciones o subtitulos. Tu respuesta empieza directamente con la narración.
+2.  Menciona a los tributos por su nombre completo. Sus acciones deben ser coherentes con su mentalidad, estadísticas, el bioma y el evento del día.
+3.  **MARCADOR DE MUERTE OBLIGATORIO:** Cuando un tributo muera, DEBES indicarlo explícitamente añadiendo ' (CAÍDO)' justo después de su nombre la primera vez que mencionas su muerte. Ejemplo: 'Clove cae al suelo sin vida (CAÍDO)'. ESTO ES ESENCIAL PARA QUE LA SIMULACIÓN FUNCIONE.
+4.  **CONTINUIDAD ABSOLUTA:** Los tributos marcados como 'Caído' en el contexto están MUERTOS. NO PUEDEN volver a aparecer, hablar, actuar o ser mencionados como si estuvieran vivos. Ignorar esta regla rompe la simulación.
+5.  Mantén la continuidad con la historia de los días anteriores y el estado actual de los tributos.
+6.  Todas las armas y objetos de los jugadores deben ser básicos y agarrados de la Cornucopia, Ejemplo: Espadas, lanzas, kunais, botiquines, agua, comida.`;
 
             const userPrompt = `
 ## CONTEXTO DE LA SIMULACIÓN
 **Día Actual:** ${state.gameDay}
+**Bioma de la Arena:** ${state.arenaBiome}
 **Resumen de Días Anteriores:**
 ${state.storyHistory || "No hay eventos anteriores. Es el inicio de los juegos."}
 
 ## ESTADO DE LOS TRIBUTOS
-**Tributos Vivos:**
+**Tributos Vivos (los únicos que pueden actuar):**
 ${tributesAlive || "Ninguno."}
 
-**Tributos Caídos:**
+**Tributos Caídos (están MUERTOS y no pueden participar):**
 ${tributesFallen || "Ninguno."}
+
+## EVENTO DEL DÍA
+**Evento Especial de la Arena:** ${arenaEvent}
 
 ## TU MISIÓN HOY
 ${dayInstruction}
-`;
+Recuerda, cíñete a las reglas. Solo la narrativa. La coherencia es vital.`;
             return [
                 { "role": "system", "content": systemPrompt.trim() },
                 { "role": "user", "content": userPrompt.trim() }
@@ -516,8 +532,77 @@ ${dayInstruction}
             this.updateTributesFromNarrative(state.storyHistory);
             ui.updateStatusSidebar();
         },
+
+        saveCast() {
+            const { dom, state } = GameSimulator;
+            const castName = dom.castNameInput.value.trim();
+            if (!castName) {
+                alert("Por favor, introduce un nombre para el elenco.");
+                return;
+            }
+            if (state.tributes.length === 0) {
+                alert("No hay tributos que guardar. Por favor, créalos en 'La Cosecha' y guárdalos primero.");
+                return;
+            }
+
+            const allCasts = JSON.parse(localStorage.getItem('savedCasts') || '{}');
+            allCasts[castName] = state.tributes;
+            localStorage.setItem('savedCasts', JSON.stringify(allCasts));
+            
+            alert(`Elenco "${castName}" guardado con éxito.`);
+            this.populateCastDropdown();
+            dom.castNameInput.value = '';
+        },
+
+        loadCast() {
+            const { dom, ui } = GameSimulator;
+            const castName = dom.loadCastSelect.value;
+            if (!castName) {
+                alert("No hay ningún elenco seleccionado para cargar.");
+                return;
+            }
+
+            const allCasts = JSON.parse(localStorage.getItem('savedCasts') || '{}');
+            const castData = allCasts[castName];
+
+            if (castData) {
+                GameSimulator.state.tributes = castData.map(tData => {
+                    const tribute = new Tribute(tData.id, tData.name, tData.district, tData.image);
+                    tribute.stats = tData.stats;
+                    tribute.mindset = tData.mindset;
+                    return tribute;
+                });
+                
+                dom.numTributesInput.value = GameSimulator.state.tributes.length;
+                ui.generateTributeInputs(GameSimulator.state.tributes);
+                ui.renderTributesOverview();
+                alert(`Elenco "${castName}" cargado. Puedes editarlo o ir a 'Ajustes' para continuar.`);
+                ui.showSection('cosecha-section');
+            } else {
+                alert("Error: No se pudo encontrar el elenco seleccionado.");
+            }
+        },
+
+        populateCastDropdown() {
+            const { dom } = GameSimulator;
+            const allCasts = JSON.parse(localStorage.getItem('savedCasts') || '{}');
+            const castNames = Object.keys(allCasts);
+            
+            dom.loadCastSelect.innerHTML = '';
+            if (castNames.length === 0) {
+                dom.loadCastSelect.innerHTML = '<option value="">No hay elencos guardados</option>';
+            } else {
+                castNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    dom.loadCastSelect.appendChild(option);
+                });
+            }
+        }
     }
 };
 
-// --- INICIALIZAR EL SIMULADOR ---
-GameSimulator.init();
+document.addEventListener('DOMContentLoaded', () => {
+    GameSimulator.init();
+});
