@@ -1,46 +1,44 @@
-/* --- PALETA Y ESTILOS GLOBALES (Inspiración Google/Apple) --- */
 :root {
-    --primary-accent: #007AFF; /* Azul Apple/Google */
-    --primary-accent-dark: #0056C0; /* Un tono más oscuro para hover/active */
+    --primary-accent: #007AFF;
+    --primary-accent-dark: #0056C0;
     
-    --text-primary: #1D1D1F;    /* Casi negro (Apple) */
-    --text-secondary: #3C3C3E;  /* Gris oscuro (Ligeramente más claro que 6E6E73 para más contraste en algunos casos) */
-    --text-muted: #8A8A8E;     /* Gris medio (Apple 86868B ajustado) */
+    --text-primary: #1D1D1F;
+    --text-secondary: #3C3C3E;
+    --text-muted: #8A8A8E;
     
-    --bg-main: #F5F5F7;        /* Fondo principal muy claro (Apple) */
-    --bg-content: #FFFFFF;     /* Blanco para áreas de contenido */
-    --bg-hover-subtle: rgba(0, 0, 0, 0.03); /* Hover muy sutil */
+    --bg-main: #F5F5F7;
+    --bg-content: #FFFFFF;
+    --bg-hover-subtle: rgba(0, 0, 0, 0.03);
     
-    --border-color: #DCDCE0;   /* Borde sutil (Apple D2D2D7 ajustado) */
-    --border-interactive: #C7C7CC; /* Para inputs y elementos clickeables */
+    --border-color: #DCDCE0;
+    --border-interactive: #C7C7CC;
 
-    --interactive-highlight: rgba(0, 122, 255, 0.1); /* Sombra/resplandor para focus */
+    --interactive-highlight: rgba(0, 122, 255, 0.1);
 
-    --success: #34C759;        /* Verde Apple */
-    --danger: #FF3B30;         /* Rojo Apple */
-    --warning: #FF9500;       /* Naranja Apple */
-    --info: var(--primary-accent); /* Azul para información */
+    --success: #34C759;
+    --danger: #FF3B30;
+    --warning: #FF9500;
+    --info: var(--primary-accent);
 
-    --log-bg: #1C1C1E;         /* Fondo oscuro Apple para el log */
-    --log-text: #E5E5E7;       /* Texto claro Apple para el log */
-    --log-accent: var(--info); /* Acento para marcadores de día en el log */
+    --log-bg: #1C1C1E;
+    --log-text: #E5E5E7;
+    --log-accent: var(--info);
 
     --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-    --spacing-1: 0.25rem; /* 4px */
-    --spacing-2: 0.5rem;  /* 8px */
-    --spacing-3: 0.75rem; /* 12px */
-    --spacing-4: 1rem;    /* 16px */
-    --spacing-5: 1.25rem; /* 20px */
-    --spacing-6: 1.5rem;  /* 24px */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-5: 1.25rem;
+    --spacing-6: 1.5rem;
 
-    --avatar-size-sm: 28px; /* Para el log */
-    --avatar-size-md: 40px; /* Para sidebar de simulación */
-    --avatar-size-lg: 64px; /* Para tarjetas de tributos */
+    --avatar-size-sm: 28px;
+    --avatar-size-md: 40px;
+    --avatar-size-lg: 64px;
 }
 
-/* Scrollbar global sutil */
 ::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: var(--bg-main); }
 ::-webkit-scrollbar-thumb { background: var(--border-interactive); border-radius: 10px; }
@@ -59,7 +57,6 @@ body {
     max-width: 1100px;
 }
 
-/* --- Header & Navigation --- */
 .app-header {
     background-color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
@@ -91,7 +88,6 @@ body {
 }
 .nav-link i { margin-right: var(--spacing-1); opacity: 0.9; font-size: 0.9em; }
 
-/* --- Sections & Content Areas --- */
 .content-section {
     display: none;
     padding: 1.5rem;
@@ -118,7 +114,6 @@ body {
 }
 .section-header i { color: var(--primary-accent); margin-right: var(--spacing-2); font-size: 1.05em; }
 
-/* --- Buttons --- */
 .btn {
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
@@ -147,7 +142,6 @@ body {
 .btn-danger:hover { background-color: #E03024; border-color: #E03024; }
 .btn-danger:active { background-color: #C72A1F; }
 
-/* --- Cards --- */
 .data-card {
     background-color: var(--bg-content);
     padding: 1rem;
@@ -174,7 +168,6 @@ body {
 .tribute-card .text-xs { color: var(--text-muted); }
 .tribute-card .stat-icon { opacity: 0.6; font-size: 0.9em; }
 
-/* --- Form Elements --- */
 .form-input, .form-select {
     display: block;
     width: 100%;
@@ -201,13 +194,11 @@ body {
 input[readonly].form-input {
     background-color: var(--bg-main); color: var(--text-muted); cursor: not-allowed; border-color: var(--border-color);
 }
-/* Estilo específico para el campo de la API key */
 .api-key-input {
     font-family: var(--font-mono);
     color: var(--primary-accent);
 }
 
-/* --- Simulation Log --- */
 #simulationLogOutput {
     height: 480px; 
     background-color: var(--log-bg); 
@@ -215,8 +206,8 @@ input[readonly].form-input {
     padding: var(--spacing-4); 
     border-radius: 0.5rem;
     overflow-y: auto;
-    font-family: var(--font-sans); /* Cambiado a Sans para mejor legibilidad de párrafos */
-    font-size: 0.9rem; /* Ligeramente más grande para párrafos */
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
     line-height: 1.65; 
 }
 .log-entry { margin-bottom: var(--spacing-3); }
@@ -228,7 +219,7 @@ input[readonly].form-input {
 }
 .log-entry.day-marker i { margin-right: var(--spacing-2); }
 .log-entry.narrative-block {
-    white-space: pre-wrap; /* Respeta los saltos de línea de la IA */
+    white-space: pre-wrap;
     line-height: 1.7;
 }
 .log-entry.system-info, .log-entry.system-danger {
@@ -242,7 +233,6 @@ input[readonly].form-input {
 .log-entry.system-danger { color: var(--danger); background-color: rgba(255, 59, 48, 0.05);}
 
 
-/* --- District Grouping --- */
 .district-group {
     margin-bottom: 1.25rem;
     padding: 1rem;
@@ -271,7 +261,6 @@ input[readonly].form-input {
     color: var(--text-muted);
 }
 
-/* --- Simulation Specific --- */
 .winner-display {
     color: var(--success);
     text-shadow: 0 0 8px rgba(52, 199, 89, 0.4);
@@ -323,27 +312,33 @@ input[readonly].form-input {
 .simulation-status-item.status-injured-mild .simulation-status-item-img { border-color: var(--warning); }
 .simulation-status-item.status-injured-severe .simulation-status-item-img { border-color: var(--primary-accent); }
 
-/* Utility */
 .stat-icon {
-    width: 1.25em; /* fa-fw */
-    text-align: center; /* fa-fw */
-    margin-right: 0.125rem; /* mr-0.5 */
+    width: 1.25em;
+    text-align: center;
+    margin-right: 0.125rem;
     opacity: 0.5;
     font-size: 0.9em;
 }
 .text-xxs { font-size: 0.65rem; }
 
-/* NUEVO: Estilo para el feedback de los comandos en el log */
 .log-entry.command-feedback {
     font-style: italic;
     font-size: 0.8rem;
     color: var(--text-muted);
     text-align: left;
     padding-left: var(--spacing-4);
-    margin-top: calc(-1 * var(--spacing-2)); /* Acercarlo a la narrativa */
+    margin-top: calc(-1 * var(--spacing-2));
     margin-bottom: var(--spacing-4);
     opacity: 0.8;
 }
 .log-entry.command-feedback i {
     color: var(--warning);
+}
+
+.settings-extra-group {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background-color: rgba(0,0,0,0.015);
 }
